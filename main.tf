@@ -22,26 +22,69 @@ data "azurerm_client_config" "current" {
 }
 
 ########################################################
-## New Subscription's Virtual Network ##################
+## Create New Subscription's Resource Groups ###########
+########################################################
+resource "azurerm_resource_group" "mgmtrg" {
+  location = var.location
+  name     = "RG-${sub_name}-MGMT-001"
+}
+
+resource "azurerm_resource_group" "vnetrg" {
+  location = var.location
+  name     = "RG-${sub_name}-VNET-001"
+}
+
+
+########################################################
+## Virtual Network #####################################
 ########################################################
 module "network" {
     source = "./modules/virtualnetwork"
     
-    name = "st${sub_name}tstate01"
-    location = var.location
-    resource_group_name = "RG-${sub_name}-VNET-001"
-    address_space = [var.address_space]
-    dns_servers = [var.dns_servers]
-    subnet_name
+    name = "VNET-${sub_name}-001"
+    location            = azurerm_resource_group.vnetrg.location
+    resource_group_name = azurerm_resource_group.vnetrg.id
+    address_space       = [var.address_space]
+    dns_servers         = [var.dns_servers]
 }
 
 ########################################################
-## New Subscription's Terraform State Stroage Account ##
+## Default MGMT Subnet Network Security Group ##########
 ########################################################
-module "terrafrom_storage" {
-    source = "./modules/storage"
+module "nsg" {
+    source = "./modules/nsg"
     
-    name = "st${sub_name}tstate01"
-    location = var.location
-    resource_group_name = "RG-${sub_name}-MGMT-001"
+    name = "VNET-${sub_name}-001"
+    location            = azurerm_resource_group.vnetrg.location
+    resource_group_name = azurerm_resource_group.vnetrg.id
+    address_space       = [var.address_space]
+    dns_servers         = [var.dns_servers]
 }
+
+########################################################
+## Default MGMT Subnet Route Table #####################
+########################################################
+module "route_table" {
+    source = "./modules/nsg"
+    
+    name = "VNET-${sub_name}-001"
+    location            = azurerm_resource_group.vnetrg.location
+    resource_group_name = azurerm_resource_group.vnetrg.id
+    address_space       = [var.address_space]
+    dns_servers         = [var.dns_servers]
+}
+
+########################################################
+## MGMT###################### ##########################
+########################################################
+module "subnet" {
+    source              = "./modules/subnet"
+
+    name                 = "SUB-${sub_name}-MGMT-001"
+    location             = azurerm_resource_group.vnetrg.location
+    resource_group_name  = azurerm_resource_group.vnetrg.id
+    address_prefix       = [var.mgmt_subnet_address_prefix]
+    virtual_network_name = 
+}
+
+
