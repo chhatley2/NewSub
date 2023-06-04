@@ -29,12 +29,12 @@ data "azurerm_client_config" "current" {
 ########################################################
 resource "azurerm_resource_group" "mgmtrg" {
   location = var.location
-  name     = "RG-${sub_name}-MGMT-001"
+  name     = "RG-${var.sub_name}-MGMT-001"
 }
 
 resource "azurerm_resource_group" "vnetrg" {
   location = var.location
-  name     = "RG-${sub_name}-VNET-001"
+  name     = "RG-${var.sub_name}-VNET-001"
 }
 
 
@@ -44,7 +44,7 @@ resource "azurerm_resource_group" "vnetrg" {
 module "network" {
     source = "./modules/virtualnetwork"
     
-    name = "VNET-${sub_name}-001"
+    name = "VNET-${var.sub_name}-001"
     location            = azurerm_resource_group.vnetrg.location
     resource_group_name = azurerm_resource_group.vnetrg.id
     address_space       = [var.address_space]
@@ -57,7 +57,7 @@ module "network" {
 module "mgmtsubnet" {
     source = "./modules/subnet"
 
-    name                 = "SUB-${sub_name}-MGMT-001"
+    name                 = "SUB-${var.sub_name}-MGMT-001"
     location             = azurerm_resource_group.vnetrg.location
     resource_group_name  = azurerm_resource_group.vnetrg.id
     address_prefix       = var.mgmt_subnet_address_prefix
@@ -70,7 +70,7 @@ module "mgmtsubnet" {
 module "mgmtnsg" {
     source = "./modules/nsg"
     
-    name                = "NSG-${sub_name}-MGMT-001"
+    name                = "NSG-${var.sub_name}-MGMT-001"
     location            = azurerm_resource_group.vnetrg.location
     resource_group_name = azurerm_resource_group.vnetrg.id
     subnet_id           = module.mgmtsubnet.azurerm_subnet.subnet.id
@@ -83,7 +83,7 @@ module "mgmtnsg" {
 module "mgmtroute_table" {
     source = "./modules/routetable"
     
-    name = "RT-${sub_name}-MGMT-001"
+    name                = "RT-${var.sub_name}-MGMT-001"
     location            = azurerm_resource_group.vnetrg.location
     resource_group_name = azurerm_resource_group.vnetrg.id
     subnet_id           = module.mgmtsubnet.azurerm_subnet.subnet.id
@@ -92,8 +92,23 @@ module "mgmtroute_table" {
 ########################################################
 ## Recovery Services Vault #############################
 ########################################################
-
+module "backup" {
+    source = "./modules/backup"
+    
+    name                 = "BUR-${var.sub_name}-${var.environment}-001"
+    location             = azurerm_resource_group.mgmtrg.location
+    resource_group_name  = azurerm_resource_group.mgmtrg.id
+}
 
 ########################################################
 ## Key Vault ###########################################
 ########################################################
+module "keyvault" {
+    source = "./modules/keyvault"
+    
+    name                 = "SUB-${var.sub_name}-KV-${var.environment}-001"
+    location             = azurerm_resource_group.mgmtrg.location
+    resource_group_name  = azurerm_resource_group.mgmtrg.id
+    subnet_id            = module.mgmtsubnet.azurerm_subnet.subnet.id
+    private_dns_zone_ids = var.privatelink_keyvault_azure_net_zone_id
+}
