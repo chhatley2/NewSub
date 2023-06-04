@@ -5,6 +5,9 @@ terraform {
   version = "3.43.0"
   }
  }
+########################################################
+## Update storage account name @@@@@@@@@@@@@@###########
+########################################################
  backend "azurerm" {
   resource_group_name  = "RG-ALZ-DEVOPS-PROD-001"
   storage_account_name = "terrastate001"
@@ -49,42 +52,48 @@ module "network" {
 }
 
 ########################################################
+## MGMT Subnet##########################################
+########################################################
+module "mgmtsubnet" {
+    source = "./modules/subnet"
+
+    name                 = "SUB-${sub_name}-MGMT-001"
+    location             = azurerm_resource_group.vnetrg.location
+    resource_group_name  = azurerm_resource_group.vnetrg.id
+    address_prefix       = var.mgmt_subnet_address_prefix
+    virtual_network_name = module.network.azurerm_virtual_network.vnet.name
+}
+
+########################################################
 ## Default MGMT Subnet Network Security Group ##########
 ########################################################
-module "nsg" {
+module "mgmtnsg" {
     source = "./modules/nsg"
     
-    name = "VNET-${sub_name}-001"
+    name                = "NSG-${sub_name}-MGMT-001"
     location            = azurerm_resource_group.vnetrg.location
     resource_group_name = azurerm_resource_group.vnetrg.id
-    address_space       = [var.address_space]
-    dns_servers         = [var.dns_servers]
+    subnet_id           = module.mgmtsubnet.azurerm_subnet.subnet.id
+    address_prefix      = var.mgmt_subnet_address_prefix
 }
 
 ########################################################
 ## Default MGMT Subnet Route Table #####################
 ########################################################
-module "route_table" {
-    source = "./modules/nsg"
+module "mgmtroute_table" {
+    source = "./modules/routetable"
     
-    name = "VNET-${sub_name}-001"
+    name = "RT-${sub_name}-MGMT-001"
     location            = azurerm_resource_group.vnetrg.location
     resource_group_name = azurerm_resource_group.vnetrg.id
-    address_space       = [var.address_space]
-    dns_servers         = [var.dns_servers]
+    subnet_id           = module.mgmtsubnet.azurerm_subnet.subnet.id
 }
 
 ########################################################
-## MGMT###################### ##########################
+## Recovery Services Vault #############################
 ########################################################
-module "subnet" {
-    source              = "./modules/subnet"
-
-    name                 = "SUB-${sub_name}-MGMT-001"
-    location             = azurerm_resource_group.vnetrg.location
-    resource_group_name  = azurerm_resource_group.vnetrg.id
-    address_prefix       = [var.mgmt_subnet_address_prefix]
-    virtual_network_name = 
-}
 
 
+########################################################
+## Key Vault ###########################################
+########################################################
