@@ -47,8 +47,8 @@ module "network" {
     name = "VNET-${var.sub_name}-001"
     location            = azurerm_resource_group.vnetrg.location
     resource_group_name = azurerm_resource_group.vnetrg.id
-    address_space       = [var.address_space]
-    dns_servers         = [var.dns_servers]
+    address_space       = var.address_space
+    dns_servers         = var.dns_servers
 }
 
 ########################################################
@@ -61,7 +61,7 @@ module "mgmtsubnet" {
     location             = azurerm_resource_group.vnetrg.location
     resource_group_name  = azurerm_resource_group.vnetrg.id
     address_prefix       = var.mgmt_subnet_address_prefix
-    virtual_network_name = module.network.azurerm_virtual_network.vnet.name
+    virtual_network_name = module.network.virtual_network_name
 }
 
 ########################################################
@@ -73,7 +73,7 @@ module "mgmtnsg" {
     name                = "NSG-${var.sub_name}-MGMT-001"
     location            = azurerm_resource_group.vnetrg.location
     resource_group_name = azurerm_resource_group.vnetrg.id
-    subnet_id           = module.mgmtsubnet.azurerm_subnet.subnet.id
+    subnet_id           = module.mgmtsubnet.subnet_id
     address_prefix      = var.mgmt_subnet_address_prefix
 }
 
@@ -86,7 +86,7 @@ module "mgmtroute_table" {
     name                = "RT-${var.sub_name}-MGMT-001"
     location            = azurerm_resource_group.vnetrg.location
     resource_group_name = azurerm_resource_group.vnetrg.id
-    subnet_id           = module.mgmtsubnet.azurerm_subnet.subnet.id
+    subnet_id           = module.mgmtsubnet.subnet_id
 }
 
 ########################################################
@@ -109,6 +109,6 @@ module "keyvault" {
     name                 = "SUB-${var.sub_name}-KV-${var.environment}-001"
     location             = azurerm_resource_group.mgmtrg.location
     resource_group_name  = azurerm_resource_group.mgmtrg.id
-    subnet_id            = module.mgmtsubnet.azurerm_subnet.subnet.id
+    subnet_id            = module.mgmtsubnet.subnet_id
     private_dns_zone_ids = var.privatelink_keyvault_azure_net_zone_id
 }
