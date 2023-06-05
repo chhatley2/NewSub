@@ -34,14 +34,14 @@ variable "dns_servers" {
 
 variable "mgmt_subnet_address_prefix" {
   description = "Address prefix for the default management subnet must fall within the scope of address_space for vNet."
-  type        = string
-  default     = "10.0.0.0/24"
+  type        = list(string)
+  default     = ["10.0.0.0/24"]
 }
 
 variable "privatelink_keyvault_azure_net_zone_id" {
  description = "Specifies the location for the resource group and all the resources"
- default     = "/subscriptions/9ef01cbe-b3bb-4d98-a3cd-79b21d728191/resourceGroups/rg-hub-dns-prod-001/providers/Microsoft.Network/privateDnsZones/privatelink.vaultcore.azure.net"
- type        = string
+ default     =["/subscriptions/9ef01cbe-b3bb-4d98-a3cd-79b21d728191/resourceGroups/rg-hub-dns-prod-001/providers/Microsoft.Network/privateDnsZones/privatelink.vaultcore.azure.net"]
+ type        = list(string)
 }
 
 

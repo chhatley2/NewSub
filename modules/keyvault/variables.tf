@@ -15,5 +15,5 @@ variable "subnet_id" {
 }
 
 variable "private_dns_zone_ids" {
-  type = string
+  type = list(string)
 }

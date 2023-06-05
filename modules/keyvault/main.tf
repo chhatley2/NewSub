@@ -1,3 +1,12 @@
+data "azurerm_client_config" "current" {
+}
+
+ 
+
+output "tenant_id" {
+  value = data.azurerm_client_config.current.client_id
+}
+
 resource "azurerm_key_vault" "keyvault" {
   name                        = var.name
   location                    = var.location
@@ -13,7 +22,7 @@ resource "azurerm_key_vault" "keyvault" {
   public_network_access_enabled = false
 
   network_acls {
-    default_action = "deny"
+    default_action = "Deny"
     bypass = "AzureServices"
   }
 }
@@ -21,14 +30,14 @@ resource "azurerm_key_vault" "keyvault" {
 resource "azurerm_private_endpoint" "keyvault" {
   name                = "${var.name}-pe"
   location            = var.location
-  resource_group_name = var.var.resource_group_name
+  resource_group_name = var.resource_group_name
   subnet_id           = var.subnet_id
 
   private_service_connection {
     name                           = "${var.name}Connection"
-    private_connection_resource_id = azurerm_storage_account.keyvault.id
+    private_connection_resource_id = azurerm_key_vault.keyvault.id
     is_manual_connection           = false
-    subresource_names              = "vault"
+    subresource_names              = ["vault"]
   }
   
   private_dns_zone_group {

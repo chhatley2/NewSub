@@ -45,8 +45,8 @@ module "network" {
     source = "./modules/virtualnetwork"
     
     name = "VNET-${var.sub_name}-001"
-    location            = azurerm_resource_group.vnetrg.location
-    resource_group_name = azurerm_resource_group.vnetrg.id
+    location            = var.location
+    resource_group_name = "RG-${var.sub_name}-VNET-001"
     address_space       = var.address_space
     dns_servers         = var.dns_servers
 }
@@ -58,9 +58,9 @@ module "mgmtsubnet" {
     source = "./modules/subnet"
 
     name                 = "SUB-${var.sub_name}-MGMT-001"
-    location             = azurerm_resource_group.vnetrg.location
-    resource_group_name  = azurerm_resource_group.vnetrg.id
-    address_prefix       = var.mgmt_subnet_address_prefix
+    location             = var.location
+    resource_group_name  = "RG-${var.sub_name}-VNET-001"
+    address_prefixes     = var.mgmt_subnet_address_prefix
     virtual_network_name = module.network.virtual_network_name
 }
 
@@ -71,10 +71,10 @@ module "mgmtnsg" {
     source = "./modules/nsg"
     
     name                = "NSG-${var.sub_name}-MGMT-001"
-    location            = azurerm_resource_group.vnetrg.location
-    resource_group_name = azurerm_resource_group.vnetrg.id
+    location            = var.location
+    resource_group_name = "RG-${var.sub_name}-VNET-001"
     subnet_id           = module.mgmtsubnet.subnet_id
-    address_prefix      = var.mgmt_subnet_address_prefix
+    address_prefixes    = var.mgmt_subnet_address_prefix
 }
 
 ########################################################
@@ -84,8 +84,8 @@ module "mgmtroute_table" {
     source = "./modules/routetable"
     
     name                = "RT-${var.sub_name}-MGMT-001"
-    location            = azurerm_resource_group.vnetrg.location
-    resource_group_name = azurerm_resource_group.vnetrg.id
+    location            = var.location
+    resource_group_name = "RG-${var.sub_name}-VNET-001"
     subnet_id           = module.mgmtsubnet.subnet_id
 }
 
@@ -96,8 +96,8 @@ module "backup" {
     source = "./modules/backup"
     
     name                 = "BUR-${var.sub_name}-${var.environment}-001"
-    location             = azurerm_resource_group.mgmtrg.location
-    resource_group_name  = azurerm_resource_group.mgmtrg.id
+    location             = var.location
+    resource_group_name  = "RG-${var.sub_name}-MGMT-001"
 }
 
 ########################################################
@@ -106,9 +106,9 @@ module "backup" {
 module "keyvault" {
     source = "./modules/keyvault"
     
-    name                 = "SUB-${var.sub_name}-KV-${var.environment}-001"
-    location             = azurerm_resource_group.mgmtrg.location
-    resource_group_name  = azurerm_resource_group.mgmtrg.id
+    name                 = "${var.sub_name}-KV-${var.environment}-01"
+    location             = var.location
+    resource_group_name  = "RG-${var.sub_name}-MGMT-001"
     subnet_id            = module.mgmtsubnet.subnet_id
     private_dns_zone_ids = var.privatelink_keyvault_azure_net_zone_id
 }

@@ -14,6 +14,6 @@ variable "subnet_id" {
   type = string
 }
 
-variable "address_prefix" {
-  type = string
+variable "address_prefixes" {
+  type = list(string)
 }
