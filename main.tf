@@ -6,7 +6,7 @@ terraform {
   }
  }
 ########################################################
-## Update storage account name @@@@@@@@@@@@@@###########
+## Update storage account name #########################
 ########################################################
  backend "azurerm" {
   resource_group_name  = "RG-ALZ-DEVOPS-PROD-001"
