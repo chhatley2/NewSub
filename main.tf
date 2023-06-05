@@ -12,7 +12,7 @@ terraform {
   resource_group_name  = "RG-ALZ-DEVOPS-PROD-001"
   storage_account_name = "terrastate001"
   container_name       = "terraform"
-  key                  = "${var.sub_name}.tfstate"
+  key                  = "coreinfra.tfstate"
  }
 }
 
